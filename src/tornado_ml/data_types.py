@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -21,5 +22,5 @@ class ModelResult:
     model_name: str
     metrics: dict
     predictions: np.ndarray
-    probabilities: np.ndarray | None
+    probabilities: Optional[np.ndarray]
     selected_features: list[str]

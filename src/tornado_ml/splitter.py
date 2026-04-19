@@ -24,8 +24,12 @@ class DatasetSplitter:
             stratify=stratify,
         )
 
-        relative_val_ratio = self.config.val_ratio / (self.config.val_ratio + self.config.test_ratio)
-        temp_stratify = y_temp if y_temp.nunique() == 2 and y_temp.value_counts().min() >= 2 else None
+        relative_val_ratio = self.config.val_ratio / (
+            self.config.val_ratio + self.config.test_ratio
+        )
+        temp_stratify = (
+            y_temp if y_temp.nunique() == 2 and y_temp.value_counts().min() >= 2 else None
+        )
         X_val, X_test, y_val, y_test = train_test_split(
             X_temp,
             y_temp,

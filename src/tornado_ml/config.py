@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 import yaml
 
@@ -18,13 +18,16 @@ class MainlandUsBounds:
 @dataclass(frozen=True)
 class ProjectConfig:
     raw_data_paths: list[str]
-    start_date: str | None = None
-    end_date: str | None = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
     target_column: str = "TORNADO_LABEL"
     candidate_features: list[str] = field(default_factory=list)
     forbidden_features: list[str] = field(default_factory=list)
     placeholder_values: list[float] = field(default_factory=lambda: [9999.9, 999.9, 99.99, -999.9])
     missingness_threshold: float = 0.95
+    output_dir: str = "outputs"
+    save_processed_data: bool = False
+    processed_data_path: str = "data/processed/modeling_dataset.csv"
     train_ratio: float = 0.70
     val_ratio: float = 0.15
     test_ratio: float = 0.15
@@ -34,7 +37,7 @@ class ProjectConfig:
     random_forest_params: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
-    def from_yaml(cls, path: str | Path) -> ProjectConfig:
+    def from_yaml(cls, path: Union[str, Path]) -> ProjectConfig:
         config_path = Path(path)
         with config_path.open("r", encoding="utf-8") as file:
             data = yaml.safe_load(file) or {}

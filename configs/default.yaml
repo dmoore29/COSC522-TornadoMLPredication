@@ -1,5 +1,5 @@
 raw_data_paths:
-  - data/raw/*.csv
+  - data/raw/gsod_2021_2025_mainland_us.csv
 start_date: null
 end_date: null
 target_column: TORNADO_LABEL
@@ -15,7 +15,6 @@ candidate_features:
   - MAX
   - MIN
   - PRCP
-  - SNDP
   - ELEVATION
   - LATITUDE
   - LONGITUDE
@@ -31,6 +30,9 @@ placeholder_values:
   - 99.99
   - -999.9
 missingness_threshold: 0.95
+output_dir: outputs
+save_processed_data: false
+processed_data_path: data/processed/modeling_dataset.csv
 train_ratio: 0.70
 val_ratio: 0.15
 test_ratio: 0.15

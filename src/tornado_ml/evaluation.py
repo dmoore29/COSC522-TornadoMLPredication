@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
@@ -18,7 +20,7 @@ class MetricsEvaluator:
         model_name: str,
         y_true: pd.Series,
         y_pred: np.ndarray,
-        y_prob: np.ndarray | None = None,
+        y_prob: Optional[np.ndarray] = None,
     ) -> dict:
         labels = [0, 1]
         matrix = confusion_matrix(y_true, y_pred, labels=labels)

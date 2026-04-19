@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from glob import glob
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -12,10 +13,12 @@ from tornado_ml.config import ProjectConfig
 class GsodDatasetBuilder:
     """Build the final station-day modeling table from raw GSOD CSV files."""
 
-    REQUIRED_COLUMNS = {"DATE", "FRSHTT", "LATITUDE", "LONGITUDE"}
+    REQUIRED_COLUMNS = {"LATITUDE", "LONGITUDE"}
 
     def __init__(self, config: ProjectConfig):
         self.config = config
+        self.date_min_: Optional[str] = None
+        self.date_max_: Optional[str] = None
 
     def build(self) -> pd.DataFrame:
         df = self._load_raw_files()
@@ -25,6 +28,7 @@ class GsodDatasetBuilder:
         df = self._filter_date_range(df)
         df = self._build_target(df)
         df = self._normalize_missing_values(df)
+        self._record_date_range(df)
         df = self._select_model_columns(df)
         return df.reset_index(drop=True)
 
@@ -43,6 +47,10 @@ class GsodDatasetBuilder:
 
     def _validate_required_columns(self, df: pd.DataFrame) -> None:
         missing = self.REQUIRED_COLUMNS.difference(df.columns)
+        if "DATE" not in df.columns:
+            missing.add("DATE")
+        if "FRSHTT" not in df.columns and self.config.target_column not in df.columns:
+            missing.add(f"FRSHTT or {self.config.target_column}")
         if missing:
             raise ValueError(f"Raw data is missing required columns: {sorted(missing)}")
 
@@ -70,6 +78,11 @@ class GsodDatasetBuilder:
         return filtered.copy()
 
     def _build_target(self, df: pd.DataFrame) -> pd.DataFrame:
+        if self.config.target_column in df.columns:
+            labeled = df.copy()
+            labeled[self.config.target_column] = labeled[self.config.target_column].astype(int)
+            return labeled
+
         labeled = df.copy()
         frshtt = labeled["FRSHTT"].fillna(0).astype(str).str.replace(r"\.0$", "", regex=True)
         sixth_digit = frshtt.str.zfill(6).str[5]
@@ -81,8 +94,19 @@ class GsodDatasetBuilder:
         for feature in self.config.candidate_features:
             if feature in normalized.columns:
                 normalized[feature] = pd.to_numeric(normalized[feature], errors="coerce")
-                normalized[feature] = normalized[feature].replace(self.config.placeholder_values, np.nan)
+                normalized[feature] = normalized[feature].replace(
+                    self.config.placeholder_values,
+                    np.nan,
+                )
         return normalized
+
+    def _record_date_range(self, df: pd.DataFrame) -> None:
+        if df.empty:
+            self.date_min_ = None
+            self.date_max_ = None
+            return
+        self.date_min_ = df["DATE"].min().date().isoformat()
+        self.date_max_ = df["DATE"].max().date().isoformat()
 
     def _select_model_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         available_features = [

@@ -62,3 +62,49 @@ def test_select_model_columns_excludes_forbidden_features() -> None:
     selected = builder._select_model_columns(df)
 
     assert selected.columns.tolist() == ["TEMP", "LATITUDE", "LONGITUDE", "TORNADO_LABEL"]
+
+
+def test_builder_loads_gzip_csv(tmp_path) -> None:
+    raw_path = tmp_path / "sample.csv.gz"
+    pd.DataFrame(
+        {
+            "DATE": ["2024-01-01"],
+            "FRSHTT": [1],
+            "LATITUDE": [35.0],
+            "LONGITUDE": [-97.0],
+            "TEMP": [70.0],
+        }
+    ).to_csv(raw_path, index=False, compression="gzip")
+    config = ProjectConfig(
+        raw_data_paths=[str(raw_path)],
+        candidate_features=["TEMP", "LATITUDE", "LONGITUDE"],
+        forbidden_features=["FRSHTT", "DATE", "STATION", "NAME", "source_file"],
+    )
+
+    df = GsodDatasetBuilder(config).build()
+
+    assert len(df) == 1
+    assert df.iloc[0]["TORNADO_LABEL"] == 1
+
+
+def test_builder_accepts_precomputed_target_without_frshtt(tmp_path) -> None:
+    raw_path = tmp_path / "modeling_extract.csv"
+    pd.DataFrame(
+        {
+            "DATE": ["2024-01-01"],
+            "LATITUDE": [35.0],
+            "LONGITUDE": [-97.0],
+            "TEMP": [70.0],
+            "TORNADO_LABEL": [1],
+        }
+    ).to_csv(raw_path, index=False)
+    config = ProjectConfig(
+        raw_data_paths=[str(raw_path)],
+        candidate_features=["TEMP", "LATITUDE", "LONGITUDE"],
+        forbidden_features=["FRSHTT", "DATE", "STATION", "NAME", "source_file"],
+    )
+
+    df = GsodDatasetBuilder(config).build()
+
+    assert len(df) == 1
+    assert df.iloc[0]["TORNADO_LABEL"] == 1

@@ -16,7 +16,7 @@ The model must not use `FRSHTT` or any feature derived from the `FRSHTT` event-c
 ## Setup
 
 ```bash
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 ```
@@ -27,12 +27,52 @@ pip install -e ".[dev]"
 pytest
 ```
 
+Or, after running `make setup`:
+
+```bash
+make test
+```
+
 ## Run Experiment
 
 Place GSOD CSV files in `data/raw/`, then update `configs/default.yaml` if needed.
 
+Build a combined mainland U.S. extract from the downloaded NOAA archives:
+
 ```bash
-python -m tornado_ml.main --config configs/default.yaml
+make build-extract
+```
+
+Inspect the configured data without training models:
+
+```bash
+python3 -m tornado_ml.inspect_data --config configs/default.yaml
+```
+
+Or:
+
+```bash
+make inspect
+```
+
+Run the full experiment:
+
+```bash
+python3 -m tornado_ml.main --config configs/default.yaml
+```
+
+Or:
+
+```bash
+make run
 ```
 
 Generated metrics, tables, and models are saved under `outputs/`.
+
+Key report-ready outputs:
+
+- `outputs/metrics/dataset_summary.json`
+- `outputs/metrics/metrics.json`
+- `outputs/tables/missingness_summary.csv`
+- `outputs/tables/split_summary.csv`
+- `outputs/tables/model_comparison.csv`

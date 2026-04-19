@@ -9,7 +9,11 @@ from tornado_ml.experiment_runner import ExperimentRunner
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the tornado ML experiment.")
-    parser.add_argument("--config", default="configs/default.yaml", help="Path to YAML config file.")
+    parser.add_argument(
+        "--config",
+        default="configs/default.yaml",
+        help="Path to YAML config file.",
+    )
     return parser.parse_args()
 
 
