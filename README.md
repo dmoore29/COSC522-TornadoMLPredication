@@ -21,6 +21,8 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
+For a more detailed setup guide, see [docs/getting_started.md](docs/getting_started.md).
+
 ## Run Tests
 
 ```bash
@@ -61,6 +63,8 @@ Run the full experiment:
 python3 -m tornado_ml.main --config configs/default.yaml
 ```
 
+The command prints progress logs during long-running steps and prints a final JSON summary when complete.
+
 Or:
 
 ```bash
@@ -76,3 +80,12 @@ Key report-ready outputs:
 - `outputs/tables/missingness_summary.csv`
 - `outputs/tables/split_summary.csv`
 - `outputs/tables/model_comparison.csv`
+
+## Documentation
+
+- [Getting started](docs/getting_started.md)
+- [Data workflow](docs/data_workflow.md)
+- [Project structure](docs/project_structure.md)
+- [Current dataset notes](docs/current_dataset_notes.md)
+- [Remaining coding tasks](docs/remaining_tasks.md)
+- [Agent context](AGENTS.md)
