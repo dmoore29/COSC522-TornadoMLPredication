@@ -1,8 +1,3 @@
-"""Generate all required figures from experiment output artifacts.
-
-Run after `make run`:
-    . .venv/bin/activate && python scripts/generate_figures.py
-"""
 from __future__ import annotations
 
 import json
@@ -18,9 +13,6 @@ FIGURES = Path("outputs/figures")
 FIGURES.mkdir(parents=True, exist_ok=True)
 
 
-# ------------------------------------------------------------------
-# Figure 1 — class_balance.png
-# ------------------------------------------------------------------
 with open(METRICS / "dataset_summary.json") as f:
     summary = json.load(f)
 
@@ -46,9 +38,6 @@ plt.close(fig)
 print("Saved class_balance.png")
 
 
-# ------------------------------------------------------------------
-# Figure 2 — missingness.png
-# ------------------------------------------------------------------
 miss = pd.read_csv(TABLES / "missingness_summary.csv")
 miss = miss[miss["missing_percent"] > 0].sort_values("missing_percent", ascending=True)
 
@@ -64,9 +53,6 @@ plt.close(fig)
 print("Saved missingness.png")
 
 
-# ------------------------------------------------------------------
-# Figure 3 — model_metrics_comparison.png
-# ------------------------------------------------------------------
 val_comp = pd.read_csv(TABLES / "validation_model_comparison.csv")
 test_comp = pd.read_csv(TABLES / "test_model_comparison.csv")
 
@@ -86,9 +72,6 @@ plt.close(fig)
 print("Saved model_metrics_comparison.png")
 
 
-# ------------------------------------------------------------------
-# Figures 4 & 5 — confusion matrix heatmaps (test set)
-# ------------------------------------------------------------------
 def plot_confusion_matrix(cm_row: pd.Series, title: str, path: Path) -> None:
     matrix = [
         [int(cm_row["true_negative"]),  int(cm_row["false_positive"])],
@@ -116,9 +99,6 @@ for _, row in test_cm.iterrows():
     print(f"Saved confusion_matrix_{slug}.png")
 
 
-# ------------------------------------------------------------------
-# Figure 6 — logistic_regression_coefficients.png
-# ------------------------------------------------------------------
 coef = pd.read_csv(TABLES / "logistic_regression_coefficients.csv")
 top_n = coef.head(15)
 
@@ -134,9 +114,6 @@ plt.close(fig)
 print("Saved logistic_regression_coefficients.png")
 
 
-# ------------------------------------------------------------------
-# Figure 7 — random_forest_feature_importance.png
-# ------------------------------------------------------------------
 imp = pd.read_csv(TABLES / "random_forest_feature_importance.csv")
 top_n = imp.head(15)
 
@@ -150,12 +127,6 @@ plt.close(fig)
 print("Saved random_forest_feature_importance.png")
 
 
-print(f"\nAll figures saved to {FIGURES}/")
-
-
-# ------------------------------------------------------------------
-# Figure 7b — logistic_regression_feature_importance.png
-# ------------------------------------------------------------------
 coef = pd.read_csv(TABLES / "logistic_regression_coefficients.csv")
 coef["abs_coefficient"] = coef["coefficient"].abs()
 top_n = coef.nlargest(15, "abs_coefficient")
@@ -170,9 +141,6 @@ plt.close(fig)
 print("Saved logistic_regression_feature_importance.png")
 
 
-# ------------------------------------------------------------------
-# Figure 8 — roc_curve_logistic_regression.png
-# ------------------------------------------------------------------
 test_comp = pd.read_csv(TABLES / "test_model_comparison.csv")
 lr_test_metrics = test_comp[test_comp["model_name"] == "Logistic Regression"].iloc[0]
 lr_roc_auc = lr_test_metrics.get("roc_auc", None)
@@ -196,3 +164,5 @@ if lr_roc_auc is not None and not pd.isna(lr_roc_auc) and roc_path.exists():
     print("Saved roc_curve_logistic_regression.png")
 else:
     print("Warning: ROC curve data not available for LR, skipping ROC curve figure")
+
+print(f"\nAll figures saved to {FIGURES}/")

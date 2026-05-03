@@ -49,12 +49,6 @@ class MetricsEvaluator:
         beta: float = 2.0,
         min_recall: float = 0.80,
     ) -> float:
-        """Find the threshold maximizing F-beta on the given set.
-
-        beta > 1 weights recall more than precision (beta=2 means recall counts
-        twice as much). min_recall enforces a floor so the threshold never drops
-        below a practically useful detection rate.
-        """
         precisions, recalls, thresholds = precision_recall_curve(y_true, y_prob)
         # precisions/recalls have one extra element (for threshold=0); align with thresholds
         p, r = precisions[:-1], recalls[:-1]
