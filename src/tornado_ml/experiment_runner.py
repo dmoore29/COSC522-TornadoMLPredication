@@ -9,6 +9,8 @@ from tornado_ml.artifact_manager import ArtifactManager
 from tornado_ml.config import ProjectConfig
 from tornado_ml.data_types import DataSplit, ModelResult
 from tornado_ml.dataset_builder import GsodDatasetBuilder
+from sklearn.metrics import roc_curve
+
 from tornado_ml.evaluation import MetricsEvaluator
 from tornado_ml.models import LogisticRegressionModel, RandomForestModel
 from tornado_ml.preprocessing import FeatureEngineer, FeaturePreprocessor
@@ -114,6 +116,13 @@ class ExperimentRunner:
         test_pred = (test_prob >= optimal_threshold).astype(int)
         test_metrics = self.evaluator.evaluate("Logistic Regression", split.y_test, test_pred, test_prob)
         test_metrics["optimal_threshold"] = optimal_threshold
+
+        logger.info("Saving LR ROC curve data")
+        fpr, tpr, _ = roc_curve(split.y_test, test_prob)
+        self.artifacts.save_dataframe(
+            pd.DataFrame({"fpr": fpr, "tpr": tpr}),
+            "logistic_regression_roc_curve.csv",
+        )
 
         logger.info("Exporting LR coefficients")
         coef_df = pd.DataFrame({

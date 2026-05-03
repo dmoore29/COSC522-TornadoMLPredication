@@ -47,7 +47,7 @@ class MetricsEvaluator:
         y_true: pd.Series,
         y_prob: np.ndarray,
         beta: float = 2.0,
-        min_recall: float = 0.60,
+        min_recall: float = 0.80,
     ) -> float:
         """Find the threshold maximizing F-beta on the given set.
 

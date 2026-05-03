@@ -160,10 +160,12 @@ test_comp = pd.read_csv(TABLES / "test_model_comparison.csv")
 lr_test_metrics = test_comp[test_comp["model_name"] == "Logistic Regression"].iloc[0]
 lr_roc_auc = lr_test_metrics.get("roc_auc", None)
 
-if lr_roc_auc is not None and not pd.isna(lr_roc_auc):
+roc_path = TABLES / "logistic_regression_roc_curve.csv"
+if lr_roc_auc is not None and not pd.isna(lr_roc_auc) and roc_path.exists():
+    roc_df = pd.read_csv(roc_path)
     fig, ax = plt.subplots(figsize=(6, 5))
-    ax.plot([0, 1], [0, 1], "k--", linewidth=1, label="Random Classifier (AUC = 0.5)")
-    ax.plot([0, 1], [0, 1], "b-", linewidth=2.5, label=f"Logistic Regression (AUC = {lr_roc_auc:.4f})")
+    ax.plot([0, 1], [0, 1], "k--", linewidth=1, label="Random Classifier (AUC = 0.50)")
+    ax.plot(roc_df["fpr"], roc_df["tpr"], "b-", linewidth=2.5, label=f"Logistic Regression (AUC = {lr_roc_auc:.4f})")
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.set_xlabel("False Positive Rate")
@@ -176,4 +178,4 @@ if lr_roc_auc is not None and not pd.isna(lr_roc_auc):
     plt.close(fig)
     print("Saved roc_curve_logistic_regression.png")
 else:
-    print("Warning: ROC-AUC not available for LR, skipping ROC curve figure")
+    print("Warning: ROC curve data not available for LR, skipping ROC curve figure")

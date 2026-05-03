@@ -44,7 +44,9 @@ mainland_us_bounds:
   max_longitude: -66.5
 logistic_regression_params:
   max_iter: 1000
-  class_weight: balanced
+  class_weight:
+    0: 1
+    1: 40000
   solver: lbfgs
   C: 0.1
 random_forest_params:
