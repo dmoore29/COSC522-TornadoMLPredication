@@ -154,6 +154,23 @@ print(f"\nAll figures saved to {FIGURES}/")
 
 
 # ------------------------------------------------------------------
+# Figure 7b — logistic_regression_feature_importance.png
+# ------------------------------------------------------------------
+coef = pd.read_csv(TABLES / "logistic_regression_coefficients.csv")
+coef["abs_coefficient"] = coef["coefficient"].abs()
+top_n = coef.nlargest(15, "abs_coefficient")
+
+fig, ax = plt.subplots(figsize=(8, 5))
+ax.barh(top_n["feature"][::-1], top_n["abs_coefficient"][::-1], color="steelblue")
+ax.set_xlabel("Importance")
+ax.set_title("Logistic Regression- Top 15 Features")
+fig.tight_layout()
+fig.savefig(FIGURES / "logistic_regression_feature_importance.png", dpi=150)
+plt.close(fig)
+print("Saved logistic_regression_feature_importance.png")
+
+
+# ------------------------------------------------------------------
 # Figure 8 — roc_curve_logistic_regression.png
 # ------------------------------------------------------------------
 test_comp = pd.read_csv(TABLES / "test_model_comparison.csv")
@@ -170,7 +187,7 @@ if lr_roc_auc is not None and not pd.isna(lr_roc_auc) and roc_path.exists():
     ax.set_ylim(0, 1)
     ax.set_xlabel("False Positive Rate")
     ax.set_ylabel("True Positive Rate")
-    ax.set_title("Logistic Regression ROC Curve (Test Set)")
+    ax.set_title("Logistic Regression ROC Curve on test set")
     ax.legend(loc="lower right")
     ax.grid(alpha=0.3)
     fig.tight_layout()
