@@ -8,6 +8,7 @@ from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
     f1_score,
+    precision_recall_curve,
     precision_score,
     recall_score,
     roc_auc_score,
@@ -40,3 +41,16 @@ class MetricsEvaluator:
         if y_prob is not None and pd.Series(y_true).nunique() == 2:
             metrics["roc_auc"] = float(roc_auc_score(y_true, y_prob))
         return metrics
+
+    @staticmethod
+    def find_optimal_threshold(y_true: pd.Series, y_prob: np.ndarray) -> float:
+        """Find the probability threshold that maximizes F1 on the given set."""
+        precisions, recalls, thresholds = precision_recall_curve(y_true, y_prob)
+        # precisions/recalls have one extra element (for threshold=0); align with thresholds
+        f1_scores = np.where(
+            (precisions[:-1] + recalls[:-1]) == 0,
+            0.0,
+            2 * precisions[:-1] * recalls[:-1] / (precisions[:-1] + recalls[:-1]),
+        )
+        best_idx = int(np.argmax(f1_scores))
+        return float(thresholds[best_idx])
