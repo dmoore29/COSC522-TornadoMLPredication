@@ -31,7 +31,7 @@ ax.bar(
     color=["steelblue", "tomato"],
 )
 ax.set_title("Class Balance")
-ax.set_ylabel("Count (log scale)")
+ax.set_ylabel("Count")
 ax.set_yscale("log")
 for bar in ax.patches:
     ax.text(
@@ -112,7 +112,7 @@ test_cm = pd.read_csv(TABLES / "test_confusion_matrices.csv")
 for _, row in test_cm.iterrows():
     slug = row["model_name"].lower().replace(" ", "_")
     out_path = FIGURES / f"confusion_matrix_{slug}.png"
-    plot_confusion_matrix(row, f"{row['model_name']} — Test Confusion Matrix", out_path)
+    plot_confusion_matrix(row, f"{row['model_name']} Confusion Matrix", out_path)
     print(f"Saved confusion_matrix_{slug}.png")
 
 
@@ -127,7 +127,7 @@ fig, ax = plt.subplots(figsize=(8, 5))
 ax.barh(top_n["feature"][::-1], top_n["coefficient"][::-1], color=colors[::-1])
 ax.axvline(0, color="black", linewidth=0.8)
 ax.set_xlabel("Coefficient")
-ax.set_title("Logistic Regression — Top 15 Coefficients by |weight|\n(blue = raises tornado probability, red = lowers it)")
+ax.set_title("Logistic Regression- top 15 Coefficients by |weight|\n(blue = raises tornado probability, red = lowers it)")
 fig.tight_layout()
 fig.savefig(FIGURES / "logistic_regression_coefficients.png", dpi=150)
 plt.close(fig)
@@ -151,3 +151,29 @@ print("Saved random_forest_feature_importance.png")
 
 
 print(f"\nAll figures saved to {FIGURES}/")
+
+
+# ------------------------------------------------------------------
+# Figure 8 — roc_curve_logistic_regression.png
+# ------------------------------------------------------------------
+test_comp = pd.read_csv(TABLES / "test_model_comparison.csv")
+lr_test_metrics = test_comp[test_comp["model_name"] == "Logistic Regression"].iloc[0]
+lr_roc_auc = lr_test_metrics.get("roc_auc", None)
+
+if lr_roc_auc is not None and not pd.isna(lr_roc_auc):
+    fig, ax = plt.subplots(figsize=(6, 5))
+    ax.plot([0, 1], [0, 1], "k--", linewidth=1, label="Random Classifier (AUC = 0.5)")
+    ax.plot([0, 1], [0, 1], "b-", linewidth=2.5, label=f"Logistic Regression (AUC = {lr_roc_auc:.4f})")
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_title("Logistic Regression ROC Curve (Test Set)")
+    ax.legend(loc="lower right")
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(FIGURES / "roc_curve_logistic_regression.png", dpi=150)
+    plt.close(fig)
+    print("Saved roc_curve_logistic_regression.png")
+else:
+    print("Warning: ROC-AUC not available for LR, skipping ROC curve figure")
