@@ -24,3 +24,6 @@ class ModelResult:
     predictions: np.ndarray
     probabilities: Optional[np.ndarray]
     selected_features: list[str]
+    val_metrics: Optional[dict] = None
+    val_predictions: Optional[np.ndarray] = None
+    val_probabilities: Optional[np.ndarray] = None
