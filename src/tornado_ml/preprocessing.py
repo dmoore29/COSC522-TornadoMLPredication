@@ -31,8 +31,10 @@ class FeatureEngineer:
         if "MAX" in X.columns and "MIN" in X.columns:
             X["TEMP_RANGE"] = X["MAX"] - X["MIN"]
         # Sudden gust spike relative to sustained wind = wind shear indicator
+        # Clipped to [0, 10] — physically, gusts rarely exceed 3–4x sustained wind;
+        # without clipping, near-zero MXSPD produces extreme values that overflow StandardScaler
         if "GUST" in X.columns and "MXSPD" in X.columns:
-            X["GUST_RATIO"] = X["GUST"] / (X["MXSPD"] + 1e-6)
+            X["GUST_RATIO"] = (X["GUST"] / (X["MXSPD"] + 1e-6)).clip(upper=10.0)
         # Negative pressure anomaly = storm center proximity
         if "SLP" in X.columns and self._slp_mean is not None:
             X["PRESSURE_DEFICIT"] = self._slp_mean - X["SLP"]

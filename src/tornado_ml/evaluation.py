@@ -43,14 +43,24 @@ class MetricsEvaluator:
         return metrics
 
     @staticmethod
-    def find_optimal_threshold(y_true: pd.Series, y_prob: np.ndarray) -> float:
-        """Find the probability threshold that maximizes F1 on the given set."""
+    def find_optimal_threshold(
+        y_true: pd.Series,
+        y_prob: np.ndarray,
+        beta: float = 2.0,
+        min_recall: float = 0.60,
+    ) -> float:
+        """Find the threshold maximizing F-beta on the given set.
+
+        beta > 1 weights recall more than precision (beta=2 means recall counts
+        twice as much). min_recall enforces a floor so the threshold never drops
+        below a practically useful detection rate.
+        """
         precisions, recalls, thresholds = precision_recall_curve(y_true, y_prob)
         # precisions/recalls have one extra element (for threshold=0); align with thresholds
-        f1_scores = np.where(
-            (precisions[:-1] + recalls[:-1]) == 0,
-            0.0,
-            2 * precisions[:-1] * recalls[:-1] / (precisions[:-1] + recalls[:-1]),
-        )
-        best_idx = int(np.argmax(f1_scores))
+        p, r = precisions[:-1], recalls[:-1]
+        denom = beta**2 * p + r
+        fbeta = np.where(denom == 0, 0.0, (1 + beta**2) * p * r / denom)
+        # Mask out thresholds where recall falls below the minimum acceptable rate
+        fbeta = np.where(r >= min_recall, fbeta, 0.0)
+        best_idx = int(np.argmax(fbeta))
         return float(thresholds[best_idx])
