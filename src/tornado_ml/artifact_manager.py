@@ -14,7 +14,9 @@ class ArtifactManager:
         self.metrics_dir = self.output_dir / "metrics"
         self.models_dir = self.output_dir / "models"
         self.tables_dir = self.output_dir / "tables"
-        for directory in [self.metrics_dir, self.models_dir, self.tables_dir]:
+        self.figures_dir = self.output_dir / "figures"
+        
+        for directory in [self.metrics_dir, self.models_dir, self.tables_dir, self.figures_dir]:
             directory.mkdir(parents=True, exist_ok=True)
 
     def save_json(self, data: dict[str, Any], filename: str) -> Path:

@@ -8,7 +8,7 @@ import pandas as pd
 
 from tornado_ml.config import MainlandUsBounds, ProjectConfig
 
-DEFAULT_INPUT_ROOT = Path("/Users/davidmoore/Downloads/gsod_recent/extracted")
+DEFAULT_INPUT_ROOT = Path("/Users/jonascencio/Downloads/gsod_recent/extracted")
 DEFAULT_OUTPUT_PATH = Path("data/raw/gsod_2021_2025_mainland_us.csv")
 
 

@@ -14,6 +14,9 @@ from sklearn.metrics import (
 )
 
 
+def predictions_from_threshold(y_prob: np.ndarray, threshold: float) -> np.ndarray:
+    return (y_prob >= threshold).astype(int)
+
 class MetricsEvaluator:
     def evaluate(
         self,
@@ -40,3 +43,57 @@ class MetricsEvaluator:
         if y_prob is not None and pd.Series(y_true).nunique() == 2:
             metrics["roc_auc"] = float(roc_auc_score(y_true, y_prob))
         return metrics
+    
+    def evaluate_thresholds(
+        self,
+        model_name: str,
+        y_true: pd.Series,
+        y_prob: np.ndarray,
+        thresholds: list[float],
+    ) -> pd.DataFrame:
+        rows = []
+
+        for threshold in thresholds:
+            predictions = predictions_from_threshold(y_prob, threshold)
+            metrics = self.evaluate(model_name, y_true, predictions, y_prob)
+            matrix = metrics["confusion_matrix"]
+
+            rows.append(
+                {
+                    "model_name": model_name,
+                    "threshold": threshold,
+                    "accuracy": metrics["accuracy"],
+                    "precision": metrics["precision"],
+                    "recall": metrics["recall"],
+                    "f1": metrics["f1"],
+                    "roc_auc": metrics.get("roc_auc"),
+                    "true_negative": matrix["true_negative"],
+                    "false_positive": matrix["false_positive"],
+                    "false_negative": matrix["false_negative"],
+                    "true_positive": matrix["true_positive"],
+                }
+            )
+
+        return pd.DataFrame(rows)
+
+    def select_threshold(
+        self,
+        threshold_metrics: pd.DataFrame,
+        model_name: str,
+    ) -> float:
+        model_rows = threshold_metrics[threshold_metrics["model_name"] == model_name].copy()
+
+        if model_rows.empty:
+            return 0.5
+
+        # Prefer F1, but avoid selecting thresholds that never predict a positive.
+        candidates = model_rows[model_rows["true_positive"] > 0]
+        if candidates.empty:
+            return 0.5
+
+        best_row = candidates.sort_values(
+            by=["f1", "recall", "precision"],
+            ascending=False,
+        ).iloc[0]
+
+        return float(best_row["threshold"])
