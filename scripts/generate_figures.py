@@ -6,7 +6,6 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
-
 OUTPUT_DIR = Path("outputs")
 METRICS_DIR = OUTPUT_DIR / "metrics"
 TABLES_DIR = OUTPUT_DIR / "tables"
@@ -105,7 +104,7 @@ def plot_model_metrics_comparison() -> None:
 
     plt.figure(figsize=(8, 5))
     ax = plot_df.plot(kind="bar")
-    ax.set_title("Test Metric Comparison\nAccuracy is high, but recall/F1 reveal rare-event performance")
+    ax.set_title("Test Metric Comparison\nAcc is high, but recall/F1 show rare-event performance")
     ax.set_ylabel("Score")
     ax.set_xlabel("Metric")
     plt.xticks(rotation=0)
