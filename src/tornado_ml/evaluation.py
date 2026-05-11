@@ -15,6 +15,9 @@ from sklearn.metrics import (
 )
 
 
+def predictions_from_threshold(y_prob: np.ndarray, threshold: float) -> np.ndarray:
+    return (y_prob >= threshold).astype(int)
+
 class MetricsEvaluator:
     def evaluate(
         self,

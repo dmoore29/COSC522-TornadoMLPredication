@@ -76,9 +76,14 @@ class ExperimentRunner:
         self.artifacts.save_dataframe(missingness, "missingness_summary.csv")
         self.artifacts.save_json(dataset_summary, "dataset_summary.json")
         self.artifacts.save_json(
-            {result.model_name: result.metrics for result in results},
+            {result["test"].model_name: result["test"].metrics for result in results},
             "metrics.json",
         )
+        self.artifacts.save_json(
+            {result["validation"].model_name: result["validation"].metrics for result in results},
+            "validation_metrics.json",
+        )
+        
         return {
             "dataset_summary": dataset_summary,
             "metrics": {result.model_name: result.metrics for result in results},
@@ -123,6 +128,7 @@ class ExperimentRunner:
             pd.DataFrame({"fpr": fpr, "tpr": tpr}),
             "logistic_regression_roc_curve.csv",
         )
+        test_metrics["selected_threshold"] = selected_threshold
 
         logger.info("Exporting LR coefficients")
         coef_df = pd.DataFrame({
@@ -146,8 +152,26 @@ class ExperimentRunner:
             val_predictions=val_pred,
             val_probabilities=val_prob,
         )
+        
+        return {
+            "validation": ModelResult(
+                "Logistic Regression",
+                validation_metrics,
+                val_predictions,
+                val_probabilities,
+                preprocessor.selected_features_,
+            ),
+            "test": ModelResult(
+                "Logistic Regression",
+                test_metrics,
+                test_predictions,
+                test_probabilities,
+                preprocessor.selected_features_,
+            ),
+            "threshold_metrics": threshold_metrics,
+        }
 
-    def _run_random_forest(self, split: DataSplit) -> ModelResult:
+    def _run_random_forest(self, split: DataSplit) -> dict[str, ModelResult | pd.DataFrame]:
         logger.info("Preparing Random Forest features")
         preprocessor = FeaturePreprocessor(self.config, scale=False)
         X_train = preprocessor.fit_transform(split.X_train)
@@ -188,6 +212,47 @@ class ExperimentRunner:
             val_predictions=val_pred,
             val_probabilities=val_prob,
         )
+        validation_metrics["selected_threshold"] = selected_threshold
+
+        test_metrics = self.evaluator.evaluate(
+            "Random Forest",
+            split.y_test,
+            test_predictions,
+            test_probabilities,
+        )
+        test_metrics["selected_threshold"] = selected_threshold
+
+        logger.info("Saving Random Forest model and feature importance table")
+        self.artifacts.save_model(model.estimator, "random_forest.joblib")
+        self.artifacts.save_dataframe(
+            self._build_random_forest_feature_importance(
+                preprocessor.selected_features_,
+                model.estimator.feature_importances_,
+            ),
+            "random_forest_feature_importance.csv",
+        )
+
+        return {
+            "validation": ModelResult(
+                "Random Forest",
+                validation_metrics,
+                val_predictions,
+                val_probabilities,
+                preprocessor.selected_features_,
+            ),
+            "test": ModelResult(
+                "Random Forest",
+                test_metrics,
+                test_predictions,
+                test_probabilities,
+                preprocessor.selected_features_,
+            ),
+            "threshold_metrics": threshold_metrics,
+        }
+        
+    def _threshold_grid(self) -> list[float]:
+        # A compact grid should be enough for project report threshold analysis.
+        return [round(value, 2) for value in np.arange(0.05, 0.96, 0.05)]   
 
     def _build_comparison_table(self, results: list[ModelResult], split: str = "test") -> pd.DataFrame:
         rows = []

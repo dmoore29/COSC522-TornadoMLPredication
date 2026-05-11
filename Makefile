@@ -18,3 +18,6 @@ run:
 
 lint:
 	. .venv/bin/activate && ruff check .
+
+generate-figures:
+	. .venv/bin/activate && python scripts/generate_figures.py
